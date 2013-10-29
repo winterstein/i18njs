@@ -15,6 +15,7 @@ echo ...Copy in+out from www
 rm -rf ~/winterwell/www/software/i18njs/out
 cp -R out ~/winterwell/www/software/i18njs/out
 
+cp i18n.min.js ~/winterwell/www/software/i18njs/i18n.min.js
 cp ~/winterwell/www/software/i18njs/HelloWorld.html .
 
 echo ...git here
