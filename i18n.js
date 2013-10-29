@@ -41,25 +41,39 @@ function I18N(lang, file) {
 	/** Two-character ISO639 language code of the destination language, 
  * or a custom value for special languages (eg 'lolcat', or 'user-defined') */
 	this.lang = lang;
-	
-	this.en2lang = {};
-	if ( ! file) return;
-
-	// Is file one "word"? then treat it as a url!
-	if (file.match(/^\S+$/)) {
-		$.ajax(file, {
-			async: false,
-			success: this._parseFile
-		});
-		return;
-	}
-	
-	this._parseFile(file);
 	/**
 	 * {string} Used for reporting untranslatable items.
 	 * @see I18N.onfail()
 	 */
 	this.MYTAG = false;
+	/**
+	 * {boolean} Is it safe to use this?
+	 */
+	this.loaded;
+	
+	this.en2lang = {};
+	
+	if ( ! file) {
+		this.loaded = true;
+		return;
+	}
+
+	this.loaded = false;
+	// Is file one "word"? then treat it as a url!
+	if (file.match(/^\S+$/)) {
+		try {
+			$.ajax(file, {
+				async: false,
+				success: this._parseFile
+			});
+			return;
+		} catch(err) {
+			/* Swallow file-load errors! That way you still get an I18N object */
+			console.error(err);
+		}
+	}
+	
+	this._parseFile(file);
 }
 
 I18N._MARKERCHAR = "␚";

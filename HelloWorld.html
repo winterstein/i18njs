@@ -14,8 +14,19 @@
 			var lang;
 			var url = ""+window.location;
 			var _lang = url.match(/lang=(\w\w)/);
+			
+			// Let's make an I18N object!
 			var i18n;
-			if (_lang) {
+			if (_lang=='cockney') {
+				// Option 1: We'll define the translations here
+				// Cockney (generated using http://www.rinkworks.com/dialect/)
+				i18n = new I18N();
+				i18n.add("Hello World", "'Allo World");
+				i18n.add("Hello {Alice}", "Wotcher {Alice}");
+				i18n.add("You have 3 message(s)", "Yer 'ave 3 message(s)");
+				i18n.add("Back to i18njs site", "Hammer and tack to i18njs site");
+			} else if (_lang) {
+				// Option 2: We'll load the translations from a tab-separated csv file.
 				var lang = _lang[1];
 				i18n = new I18N(lang, lang+'.csv');
 			} else {
@@ -24,7 +35,7 @@
 			}
 			
 			// Export tr() to global for easy access.
-			tr = i18n.tr;
+			window.tr = i18n.tr;
 			
 		</script>
 	</head>
@@ -51,7 +62,7 @@
 				<li><a href='HelloWorld.html?lang=lolcat'>LOL Cat</a></li>
 			</ul>
 			
-			<p><a href='index.html'>Back to i18njs site</a></p>
+			<p><a href='index.html' class='translate'>Back to i18njs site</a></p>
 		
 		</div>
 		

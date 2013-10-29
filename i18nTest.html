@@ -109,6 +109,12 @@
 							// -s
 							var englishs = i18n.tr("How are your 17 cat(s)?");
 							assertMatch(englishs, "How are your 17 cats?");
+						},
+						
+						noCurlyBraces: function() {
+							var i18n = new I18N();
+							english = i18n.tr("{Local} Dashboard");
+							assertMatch(english, "Local Dashboard");
 						}
 					});	
 		</script>
