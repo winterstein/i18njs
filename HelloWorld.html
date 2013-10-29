@@ -1,0 +1,67 @@
+<html>
+	<head>
+		<title>Simple i18njs example</title>
+		
+		<link href="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+		<script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+
+		<!-- i18n.js (please download your own copy) -->
+		<script src='https://rawgithub.com/winterstein/i18njs/master/i18n.min.js'></script>
+		<script>
+			// Normally you'd get the language from user settings.
+			// Here we get it from the url.
+			var lang;
+			var url = ""+window.location;
+			var _lang = url.match(/lang=(\w\w)/);
+			var i18n;
+			if (_lang) {
+				var lang = _lang[1];
+				i18n = new I18N(lang, lang+'.csv');
+			} else {
+				// No translations -- but we can still clean up plural(s) 
+				i18n = new I18N();
+			}
+			
+			// Export tr() to global for easy access.
+			tr = i18n.tr;
+			
+		</script>
+	</head>
+	<body>
+		<div class='container'>
+			<h1><span class='translate'>Hello World!</span> <span class='class='translate'>Simple i18njs example... in</span> <script>document.write(lang)</script></h1>
+			
+			<ul>
+				<li>"Hello World", using tr() directly: <script>document.write(
+						tr('Hello World')
+					)</script></li>
+				<li>"Hello {Alice}" (i.e. using a placeholder): <script>document.write(
+						tr('Hello {Alice}')
+					)</script></li>
+				<li>"You have 3 message(s)" (i.e. using numbers and plurals): <script>document.write(
+					tr('You have 3 message(s)')
+				)</script></li>
+				<li>Hello using jQuery: <span class='translate'>Hello using jQuery</span></li>
+			</ul>
+			
+			<ul>
+				<li><a href='HelloWorld.html'>English</a></li>
+				<li><a href='HelloWorld.html?lang=fr'>French</a></li>
+				<li><a href='HelloWorld.html?lang=lolcat'>LOL Cat</a></li>
+			</ul>
+			
+			<p><a href='index.html'>Back to i18njs site</a></p>
+		
+		</div>
+		
+		<!-- Use jQuery at the end of the page - but NOT in a post-load $() wrapper (which could cause some flickering). -->
+		<script>		
+		$('.translate').each(function(){
+			var original = $(this).text();
+			$(this).text(tr(original));
+		});
+		</script>
+		
+	</body>
+</html>
