@@ -32,6 +32,12 @@
 							var c1 = i18n.canon("You have 5 messages");
 							assertMatch(c1, "You have "+I18N._MARKERCHAR+"0 messages");	
 						},
+						
+						canon_punctuation: function() {
+							i18n = new I18N("cockney", "Hello World	'Allo World");
+							var hw = i18n.tr("Hello World!");
+							assertMatch(hw, "'Allo World!");	
+						},
 				
 						es: function() {
 							var i18n = new I18N("es", "Hello	Ola\nWorld	Mundo");							
@@ -47,6 +53,13 @@
 							var french1 = i18n.tr("You have 1 message(s)");
 							assertMatch(french1, "Vous avez 1 message");
 								
+						},
+						
+						uncanon_extraNumbers: function() {
+							// The translation has a number, which isn't in the original
+							i18n = new I18N("fr", "test	test1");
+							var ts = i18n.tr("test");
+							assertMatch(ts, "test1");															
 						},
 						
 						_uncanon2_pluralise: function() {

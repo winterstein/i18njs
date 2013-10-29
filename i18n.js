@@ -87,9 +87,9 @@ I18N._MARKERCHAR = "␚";
  */
 I18N.prototype.add = function(original, translation, type) {
   // TODO unescape tab, \r\n and #?
-  var vars = [];
-  var key = this.canon(original, vars);
-  var meaning = this.canon(translation);
+  var vars=[], tvars=[];
+  var key = this.canon(original, vars);  
+  var meaning = this.canon(translation, vars, true);
   // Check for multiple translations, keep multiple translations
   var old = this.en2lang[key];
   if (old && old !== meaning) {
@@ -223,16 +223,26 @@ I18N.KEEPME = new RegExp(
 	
 /**
  * Convert into a canonical form for internal lookup.
- * @param varCatcher array, which will collect the raw versions of "variables", for uncanon to put back.
+ * @param varCatcher {array}, which will collect the raw versions of "variables", for uncanon to put back.
+ * TODO OR the output from a previous canon(original), used to establish place-marker ordering in canon(translation).
+ * @param varOrder {?boolean} If true, varCatcher is interpreted as the output from a previous canon().
  */
-I18N.prototype.canon = function (english, varCatcher) {
+I18N.prototype.canon = function (english, varCatcher, varOrder) {
 	if ( ! english) return english;
-	if (varCatcher === undefined) varCatcher = [];
+	if (varCatcher === undefined) varCatcher = []; 
 	// Replace untranslated stuff with markers: numbers, {wrapped}, emails, tags, trailing punctuation
-	var _canon = english.replace(I18N.KEEPME, function(m) {		
-		var vi = varCatcher.length;
-		varCatcher.push(m);
-		return I18N._MARKERCHAR+vi; // Mark the place
+	var _canon = english.replace(I18N.KEEPME, function(m) {
+		if ( ! varOrder) {					
+			var vi = varCatcher.length;
+			varCatcher.push(m);
+			return I18N._MARKERCHAR+vi; // Mark the place
+		}
+		// Which marker?
+		var vi = varCatcher.indexOf(m);
+		if (vi==-1) {
+			return m; // A new var-like thing. Leave it alone.
+		}
+		return I18N._MARKERCHAR+vi;
 	});
 	return _canon;
 };
