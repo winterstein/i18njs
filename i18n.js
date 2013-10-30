@@ -215,11 +215,11 @@ I18N.prototype.onfail = function(english, lang, key) {
 
 I18N.NUMBER = /[0-9,]+(\.\d+)?/g;
 /**
- * numbers, emails, html tags, a safe subset of punctuation
+ * numbers, emails, html tags
  */
 I18N.KEEPME = new RegExp(
 		I18N.NUMBER.source
-		+"|\{.*?\}|\b\S+@[a-zA-Z\.]+|<\/?[a-z][a-zA-Z0-9]*[^>]*?>|([\?!\.,;:'\"]$)", 'g');
+		+"|\{.*?\}|\b\S+@[a-zA-Z\.]+|<\/?[a-z][a-zA-Z0-9]*[^>]*?>", 'g');
 	
 /**
  * Convert into a canonical form for internal lookup.
