@@ -32,12 +32,14 @@
 
 /**
  * @class I18N
- * @param {String} lang - Two-character ISO639 language code of the destination language, 
+ * @param lang {String} - Two-character ISO639 language code of the destination language, 
  * or a custom value for special languages (eg 'lolcat', or 'user-defined')
- * @param {?String} file - Contents of translation csv file for `lang`, OR a url to load a translation csv file.
+ * @param file {?String} - Contents of translation csv file for `lang`, 
+ * OR a url to load a translation csv file.
  * Loading is done synchronously (it will block), using jQuery.
+ * @param apptag {?string} Tag to report translation misses to i18njs (if you have an account)
 **/
-function I18N(lang, file) {
+function I18N(lang, file, apptag) {
 	/** Two-character ISO639 language code of the destination language, 
  * or a custom value for special languages (eg 'lolcat', or 'user-defined') */
 	this.lang = lang;
@@ -45,7 +47,7 @@ function I18N(lang, file) {
 	 * {string} Used for reporting untranslatable items.
 	 * @see I18N.onfail()
 	 */
-	this.MYTAG = false;
+	this.appTag = apptag? apptag : false;
 	/**
 	 * {boolean} Is it safe to use this?
 	 */
@@ -205,9 +207,9 @@ I18N.prototype.categorise = function(v) {
  */
 I18N.prototype.onfail = function(english, lang, key) {
 	console.warn("I18N", "fail ("+lang+"): "+english+"	(internal key: "+key+")");
-	if (this.MYTAG) {
+	if (this.appTag) {
 		$.post('https://i18n.soda.sh/lg', {
-			tags: 	"tr_"+this.MYTAG,
+			tags: 	"tr_"+this.appTag,
 			msg:	lang+"\t"+english
 		});
 	}
