@@ -211,10 +211,20 @@ I18N.prototype.categorise = function(v) {
 I18N.prototype.onfail = function(english, lang, key) {
 	console.warn("I18N", "fail ("+lang+"): "+english+"	(internal key: "+key+")");
 	if (this.appTag) {
-		$.post('https://i18n.soda.sh/lg', {
-			tags: 	"tr_"+this.appTag,
+		// Send a cross-domain ping
+		$.ajax({
+			url:'https://i18n.soda.sh/lg',
+			dataType: 'jsonp',
+			tag: 	this.appTag,
 			msg:	lang+"\t"+english
 		});
+		// HACK: local SoDash too
+		if (window.location.host.indexOf('soda.sh') != -1) {
+			$.post('/lg', {
+				tag: 	this.appTag,
+				msg:	lang+"\t"+english
+			});	
+		}
 	}
 };
 
