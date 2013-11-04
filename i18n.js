@@ -61,12 +61,15 @@ function I18N(lang, file, apptag) {
 	}
 
 	this.loaded = false;
+	
 	// Is file one "word"? then treat it as a url!
 	if (file.match(/^\S+$/)) {
 		try {
 			$.ajax(file, {
 				async: false,
-				success: this._parseFile
+				success: function(result) {
+					this._parseFile(result);
+				}.bind(this)
 			});
 			return;
 		} catch(err) {
