@@ -32,14 +32,18 @@
 
 /**
  * @class I18N
+ * 
  * @param lang {String} - Two-character ISO639 language code of the destination language, 
  * or a custom value for special languages (eg 'lolcat', or 'user-defined')
+ * 
  * @param file {?String} - Contents of translation csv file for `lang`, 
  * OR a url to load a translation csv file.
+ * OR an app-tag to load from the i18njs portal (if you have an account).
  * Loading is done synchronously (it will block), using jQuery.
- * @param apptag {?string} Tag to report translation misses to i18njs (if you have an account)
+ * 
+ * @param appTag {?string} Tag to report translation misses to the i18njs portal (if you have an account).
 **/
-function I18N(lang, file, apptag) {
+function I18N(lang, file, appTag) {
 	/** Two-character ISO639 language code of the destination language, 
  * or a custom value for special languages (eg 'lolcat', or 'user-defined') */
 	this.lang = lang;
@@ -47,7 +51,7 @@ function I18N(lang, file, apptag) {
 	 * {string} Used for reporting untranslatable items.
 	 * @see I18N.onfail()
 	 */
-	this.appTag = apptag? apptag : false;
+	this.appTag = appTag? appTag : false;
 	/**
 	 * {boolean} Is it safe to use this?
 	 */
@@ -64,6 +68,11 @@ function I18N(lang, file, apptag) {
 	
 	// Is file one "word"? then treat it as a url!
 	if (file.match(/^\S+$/)) {
+		// Is it an i18njs app-tag? Then load from the portal
+		if (file.charAt(0)==='#') {
+			file = 'https://i18n.soda.sh/i18n-trans.csv?tag='+escape(file)+'&lang='+lang;
+			this.appTag = file;
+		}
 		try {
 			$.ajax(file, {
 				async: false,
@@ -215,15 +224,14 @@ I18N.prototype.onfail = function(english, lang, key) {
 		$.ajax({
 			url:'https://i18n.soda.sh/lg',
 			dataType: 'jsonp',
-			tag: 	this.appTag,
-			msg:	lang+"\t"+english
+			data: {
+				tag: 	this.appTag,
+				msg:	lang+"\t"+english
+			}
 		});
 		// HACK: local SoDash too
 		if (window.location.host.indexOf('soda.sh') != -1) {
-			$.post('/lg', {
-				tag: 	this.appTag,
-				msg:	lang+"\t"+english
-			});	
+			$.get('/lg?tag='+this.appTag+'&msg='+escape(lang+"\t"+english));
 		}
 	}
 };
@@ -309,3 +317,4 @@ I18N.prototype._uncanon2_pluralise = function(text, vars) {
 	}
 	return text;
 };
+
