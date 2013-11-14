@@ -3,7 +3,7 @@
  * Author: Daniel Winterstein
  * Version: 0.2
  * Copyright: Winterwell http://winterwell.com
- * Requires: jQuery for synchronous ajax loading.
+ * Requires: jQuery and SJTest for synchronous ajax loading.
  * License: MIT (a commercially friendly open source license)
  * 
  * 
@@ -18,32 +18,30 @@
  * 
  * This may be the best that a lookup based system can do. Possibly the best that any system can do without requiring serious computer power.
  * 
+ * Simple but limited: Roll-your-own string mangling.
  * 
- * simple but limited:
- * 
- * 
- * complex & limited
+ * Complex & limited:
  * http://doc.qt.digia.com/qq/qq19-plurals.html
  * or
- * https://www.gnu.org/software/gettext/manual/html_node/Translating-plural-forms.html
- * 
+ * https://www.gnu.org/software/gettext/manual/html_node/Translating-plural-forms.html 
  * 
  */
 
 /**
  * @class I18N
  * 
- * @param lang {String} - Two-character ISO639 language code of the destination language, 
+ * @param lang {string} - Two-character ISO639 language code of the destination language,
+ * or a language_region locale code (e.g. "en_US"), 
  * or a custom value for special languages (eg 'lolcat', or 'user-defined')
  * 
- * @param file {?String} - Contents of translation csv file for `lang`, 
+ * @param file {?string} - Contents of translation csv file for `lang`, 
  * OR a url to load a translation csv file.
  * OR an app-tag to load from the i18njs portal (if you have an account).
  * Loading is done synchronously (it will block), using jQuery.
  * 
  * @param appTag {?string} Tag to report translation misses to the i18njs portal (if you have an account).
 **/
-function I18N(lang, file, appTag) {
+function I18N(lang, file, appTag) {	
 	/** Two-character ISO639 language code of the destination language, 
  * or a custom value for special languages (eg 'lolcat', or 'user-defined') */
 	this.lang = lang;
@@ -52,43 +50,116 @@ function I18N(lang, file, appTag) {
 	 * @see I18N.onfail()
 	 */
 	this.appTag = appTag? appTag : false;
+	
+	/**
+	 * Format dates. By default uses Date.toLocaleString(), which uses the browser's locale setting.
+	 * Users can replace this with their own function -- or with false to switch off.
+	 * @param date {Date}
+	 * @returns {string}
+	 */
+	this.dateFormat = function(date) {
+		// TODO Maybe pass a locale in, taken from this.lang? Newer browsers will support it.
+		return date.toLocaleString();
+	};
+	/**
+	 * Format numbers. By default does nothing.
+	 * Users can replace this with their own function -- or with false to switch off. 
+	 * @param num {number}
+	 * @returns {string}
+	 */
+	this.numberFormat = function(num) {
+		return num.toString();
+	};
+	
 	/**
 	 * {boolean} Is it safe to use this?
 	 */
-	this.loaded;
+	this.loaded = true; // may be reset to false by ajax call below
 	
 	this.en2lang = {};
+	
+	this.active(true);
 	
 	if ( ! file) {
 		this.loaded = true;
 		return;
 	}
-
-	this.loaded = false;
 	
-	// Is file one "word"? then treat it as a url!
-	if (file.match(/^\S+$/)) {
-		// Is it an i18njs app-tag? Then load from the portal
-		if (file.charAt(0)==='#') {
-			file = 'https://i18n.soda.sh/i18n-trans.csv?tag='+escape(file)+'&lang='+lang;
-			this.appTag = file;
+	// Is the file more than one word? Then treat it as the input
+	if ( ! file.match(/^\S+$/)) {
+		this._parseFile(file);
+	}
+	// Treat file as a url.
+	// Is it an i18njs app-tag? Then load from the portal
+	if (file.charAt(0)==='#') {
+		// Guess the language? This isn't reliable but it's a sensible fallback.
+		if ( ! lang) {
+			var locale = navigator && (navigator.language || navigator.userLanguage);
+			if (locale) this.lang = locale.substring(0,2);
+			else return; // fail			
 		}
-		try {
-			$.ajax(file, {
+		// Portal resource
+		file = 'https://i18n.soda.sh/i18n-trans.csv?tag='+escape(file)+'&lang='+escape(this.lang);
+		this.appTag = file;
+	}
+	try {
+		var req = {
 				async: false,
+				cache: true,
 				success: function(result) {
 					this._parseFile(result);
+				}.bind(this),
+				complete: function() {
+					this.loaded = true;
 				}.bind(this)
-			});
-			return;
-		} catch(err) {
-			/* Swallow file-load errors! That way you still get an I18N object */
-			console.error(err);
+		};
+		// Is it a cross-domain fetch? Probably yes
+		var i = file.indexOf('//');
+		var hostname = window.location? window.location : '';
+		var hn = file.substring(i+2, i+2+hostname.length);
+		if (i === -1 || (hostname && hn === hostname)) {
+			// Our server :)
+		} else {
+			// jsonp with caching
+			req.jsonpCallback='_i18nCallback';
+			req.dataType='jsonp';
 		}
-	}
-	
-	this._parseFile(file);
+		// Fetch it
+		this.loaded = false;
+		$.ajax(file, req);
+		// Wait for it (async=false doesn't work for jsonp). Requires SJTest!
+		if (req.dataType==='jsonp') {
+			if (window.SJTest && SJTest.waitFor) {
+				SJTest.waitFor(function(){ return this.loaded; });
+			} else console.log('I18N', 'Using asynchronous loading: The race is on (this is bad, and may produce unpredictable results). Please add SJTest.js for safer loading.');
+		}
+	} catch(err) {
+		/* Swallow file-load errors! That way you still get an I18N object */
+		console.error(err);
+	}	
 }
+
+/**
+ * Automatically called when an I18N object is made. 
+ * You can also call it explicitly to swap between objects.
+ * @param on {?boolean} Set this to be active (or not).
+ * @returns true if this is active
+ */
+I18N.prototype.active = function(on) {
+	/**
+	 * {I18N} The most recently made (or activated) I18N object. This will be used as a default by the jQuery plugin.
+	 */
+	if (on) I18N.active = this;
+	else if (this === I18N.active) {
+		I18N.active = null;
+	}
+	return this === I18N.active; 
+};
+
+I18N.tr = function(original) {
+	if ( ! I18N.active) new I18N();
+	return I18N.active.tr(original);	
+};
 
 I18N._MARKERCHAR = "␚";
 
@@ -120,6 +191,7 @@ I18N.prototype.add = function(original, translation, type) {
 /**
  * @param file {string} csv text, tab separated, # to comment out lines
  * 1st-column: original, 2nd-column: Translation, 3rd or more: ignored (can use for comments)
+ * @private
  */
 I18N.prototype._parseFile = function (file) {
 	  var lines = file.split(/[\r\n]/);
@@ -133,11 +205,10 @@ I18N.prototype._parseFile = function (file) {
 		  // bits[2], if present, is just a comment
 	  }
 	  console.log("I18N", "loaded", this);
-	  this.loaded = true;
 };
 
 /**
- * @param english English-language text
+ * @param english {string} Original text (often English)
  */
 I18N.prototype.tr = function (english) {		
 	var vars = [],
@@ -152,21 +223,21 @@ I18N.prototype.tr = function (english) {
 		return this.uncanon(trans, vars);
 	}
 	
-	// Log it to the backend for translators to work on	
+	// fail -- Log it to the backend for translators to work on	
 	if (this.loaded && english) {
-		// Remove {}s and (s)
-		var _english = this.uncanon(key, vars);
 		if (this.lang) this.onfail(english, this.lang, key);
-		return _english;
 	}
-	// Not yet loaded -- do nothing (& try again later)
-	return english;
+
+	// Remove {}s and (s)
+	var _english = this.uncanon(key, vars);	
+	return _english;
 }
 
 /**
  * @param english {string} Raw-form to translate
  * @param vars {array} From canon()
  * @returns {string} translation to use 
+ * @private
  */
 I18N.prototype._tr2_multi = function(english, vars, trans) {
 	// exact match?
@@ -253,7 +324,7 @@ I18N.KEEPME = new RegExp(
 I18N.prototype.canon = function (english, varCatcher, varOrder) {
 	if ( ! english) return english;
 	if (varCatcher === undefined) varCatcher = []; 
-	// Replace untranslated stuff with markers: numbers, {wrapped}, emails, tags, trailing punctuation
+	// Replace untranslated stuff with markers: numbers, {wrapped}, emails, html tags
 	var _canon = english.replace(I18N.KEEPME, function(m) {
 		if ( ! varOrder) {					
 			var vi = varCatcher.length;
@@ -282,14 +353,39 @@ I18N.prototype.uncanon = function (canon, vars) {
 	if (vars.length!=0) uncanon = this._uncanon2_pluralise(canon, vars);
 	// vars
 	for(var vi=0; vi<vars.length; vi++) {
-		var v = ""+vars[vi];
-		// remove {}s
-		if (v.length>1 && v.charAt(0)=='{' && v.charAt(v.length-1)=='}') {
-			v = v.substring(1, v.length-1);
-		}
+		var v = vars[vi];
+		// Convert Dates and numbers
+		v = this._uncanon2_convert(v);
+		// Insert v back into the string
 		uncanon = uncanon.replace(I18N._MARKERCHAR+vi, v);
 	}
 	return uncanon;
+};
+
+/**
+ * @param v {string} 
+ * @returns formatted version of v, e.g. numbers are run through numberFormat()
+ */
+I18N.prototype._uncanon2_convert = function(v) {
+	// TODO Maybe move the is number/date tests into key-storage (using different marker-chars), for some repeated-use efficiency.
+	// ...Is it a number?
+	if (this.numberFormat) {
+		var n = Number(v);
+		if ( ! isNaN(n)) return this.numberFormat(v);
+	}
+	// ...Is it a date?
+	if (this.dateFormat) {
+		var d = Date(v);
+		if (!isNaN(d.valueOf())) {
+			return this.dateFormat(d);
+		}
+	}
+	// Remove wrapping {}s if present
+	if (v.length>1 && v.charAt(0)=='{' && v.charAt(v.length-1)=='}') {
+		v = v.substring(1, v.length-1);
+	}
+	
+	return v;
 };
 
 /**
@@ -297,6 +393,7 @@ I18N.prototype.uncanon = function (canon, vars) {
  * @param text {string} e.g. "$0 monkey(s)"
  * @param vars Placeholder values, e.g. [2]
  * @returns {string} e.g. "2 monkeys" 
+ * @private
  */
 I18N.prototype._uncanon2_pluralise = function(text, vars) {
 	// ??we'd get a small efficiency boost if we cached whether a key requires plural handling
@@ -318,3 +415,24 @@ I18N.prototype._uncanon2_pluralise = function(text, vars) {
 	return text;
 };
 
+/* jQuery plugin
+ * Define $().tr(), which applies translation from the most recent I18N object */
+(function ( $ ) {
+	/** 
+	 * Translate the element(s).
+	 * @param i18n {?I18N} If unset, use the latest made/active one, or make a new one. */
+	$.fn.tr = function(i18n) {
+		if ( ! i18n) i18n = I18N.active || new I18N();
+	    return this.each(function() {
+	    	var $el = $(this);
+	    	// Store the raw version (in case we switch languages later)
+	    	var raw = $el.data('i18n-raw');
+	    	if ( ! raw) {
+	    		raw = $el.html();
+	    		$el.data('i18n-raw', raw);
+	    	}	    	
+	    	var trans = i18n.tr(raw);
+	    	$el.html(trans);
+	    });
+	};
+}(jQuery));
