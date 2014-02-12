@@ -7,17 +7,17 @@
 		<script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
 
 		<!-- i18n.js (please download your own copy) -->
-		<script src='https://rawgithub.com/winterstein/i18njs/master/i18n.min.js'></script>
+		<script src='i18n.js'></script>
 		<script>
 			// Normally you'd get the language from user settings.
 			// Here we get it from the url.
-			var lang;
 			var url = ""+window.location;
-			var _lang = url.match(/lang=(\w\w)/);
+			var _lang = url.match(/lang=(\w+)/);
+			var lang = _lang? _lang[1] : false;
 			
 			// Let's make an I18N object!
 			var i18n;
-			if (_lang=='cockney') {
+			if (lang == 'cockney') {
 				// Option 1: We'll define the translations here
 				// Cockney (generated using http://www.rinkworks.com/dialect/)
 				i18n = new I18N();
@@ -25,24 +25,27 @@
 				i18n.add("Hello {Alice}", "Wotcher {Alice}");
 				i18n.add("You have 3 message(s)", "Yer 'ave 3 message(s)");
 				i18n.add("Back to i18njs site", "Hammer and tack to i18njs site");
-			} else if (_lang) {
+				i18n.add("flag.png", "http://www.cockneypride.co.uk/cockney2.jpg");
+			} else if (lang) {
 				// Option 2: We'll load the translations from a tab-separated csv file.
-				var lang = _lang[1];
 				i18n = new I18N(lang, lang+'.csv');
 			} else {
 				// No translations -- but we can still clean up plural(s) 
-				i18n = new I18N();
+				i18n = new I18N(null, '#foo');
+				
+				i18n.add("flag.png", "http://www.blisstree.com/files/2008/12/dsc_0364_tea_cup.jpg");
+				lang = "default (English)";
 			}
 			
 			// Export tr() to global for easy access.
-			window.tr = i18n.tr;
+			window.tr = function(s) {return i18n.tr(s);};
 			
 		</script>
 	</head>
 	<body>
 		<div class='container'>
-			<h1><span class='translate'>Hello World!</span> <span class='class='translate'>Simple i18njs example... in</span> <script>document.write(lang)</script></h1>
-			
+			<h1><span class='translate'>Hello World!</span> <span class='class='translate'>Simple i18njs example... in</span> <script>document.write(lang)</script></h1>			
+
 			<ul>
 				<li>"Hello World", using tr() directly: <script>document.write(
 						tr('Hello World')
@@ -50,16 +53,26 @@
 				<li>"Hello {Alice}" (i.e. using a placeholder): <script>document.write(
 						tr('Hello {Alice}')
 					)</script></li>
-				<li>"You have 3 message(s)" (i.e. using numbers and plurals): <script>document.write(
+				
+				<li>"You have 3 message(s)" (i.e. using numbers and plurals): 
+				<script>document.write(
 					tr('You have 3 message(s)')
 				)</script></li>
+				
 				<li>Hello using jQuery: <span class='translate'>Hello using jQuery</span></li>
+				
+				<li>You can also use tr() for non-textual localisation: 
+					<script>document.write(
+						"<img src='"+tr('flag.png')+"'>"	
+					)</script>
+				</li>
 			</ul>
 			
 			<ul>
 				<li><a href='HelloWorld.html'>English</a></li>
 				<li><a href='HelloWorld.html?lang=fr'>French</a></li>
 				<li><a href='HelloWorld.html?lang=lolcat'>LOL Cat</a></li>
+				<li><a href='HelloWorld.html?lang=cockney'>Cockney</a></li>
 			</ul>
 			
 			<p><a href='index.html' class='translate'>Back to i18njs site</a></p>
@@ -69,8 +82,10 @@
 		<!-- Use jQuery at the end of the page - but NOT in a post-load $() wrapper (which could cause some flickering). -->
 		<script>		
 		$('.translate').each(function(){
-			var original = $(this).text();
-			$(this).text(tr(original));
+			var original = $(this).text();			
+			var trans = tr(original);
+			console.log(this, original, trans);
+			$(this).text(trans);
 		});
 		</script>
 		
