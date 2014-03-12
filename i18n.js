@@ -95,10 +95,10 @@ function I18N(lang, data, appTag) {
 	// Treat file as a url.
 	// Is it an i18njs app-tag? Then load from the portal
 	if (data.charAt(0)==='#') {
-		if ( ! lang) {
-			lang = I18N.guessLanguage();
-		}
 		// Guess the language? This isn't reliable but it's a sensible fallback.
+		if ( ! lang) {
+			lang = I18N.getBrowserLanguage();
+		}
 		if ( ! lang) return; // fail		
 		// Portal resource
 		if ( ! this.appTag) this.appTag = data;
