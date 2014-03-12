@@ -1,9 +1,10 @@
 /**
  * i18n.js	A simple flexible Javascript internationalisation system
- * Author: Daniel Winterstein
- * Version: 0.2
- * Copyright: Winterwell http://winterwell.com
- * Requires: jQuery and SJTest for synchronous ajax loading.
+ * 
+ * Author: Daniel Winterstein   
+ * Version: 0.2.1   
+ * Copyright: Winterwell http://winterwell.com   
+ * Requires: jQuery, and SJTest (optional but recommended) for synchronous ajax loading.   
  * License: MIT (a commercially friendly open source license)
  * 
  * 
@@ -12,11 +13,12 @@
  * tense, mood, voice, aspect, person, number, gender and case.
  * 
  * It's interesting how limited the enterprise level complex systems are. 
- * E.g. No support for gender? It suggests that the language used in software is limited enough for "You have 5 message(s)" & similar to be the _only_
+ * E.g. No support for gender? It suggests that the language used in software 
+ * is limited enough for "You have 5 message(s)" & similar to be the _only_
  * common complex case.
  * 
- * 
- * This may be the best that a lookup based system can do. Possibly the best that any system can do without requiring serious computer power.
+ * This may be the best that a lookup based system can do. Possibly the best 
+ * that any system can do without requiring serious computer power.
  * 
  * Simple but limited: Roll-your-own string mangling.
  * 
@@ -34,14 +36,16 @@
  * or a language_region locale code (e.g. "en_US"), 
  * or a custom value for special languages (eg 'lolcat', or 'user-defined')
  * 
- * @param file {?string} - Contents of translation csv file for `lang`, 
+ * @param data {?string} - Contents of translation csv file for `lang`, 
  * OR a url to load a translation csv file.
- * OR an app-tag to load from the i18njs portal (if you have an account).
+ * OR an app-tag (obtained from the i18njs portal; begins with a #) to load from the i18njs portal (if you have an account).
  * Loading is done synchronously (it will block), using jQuery.
  * 
  * @param appTag {?string} Tag to report translation misses to the i18njs portal (if you have an account).
+ * If an appTag is provided for the data parameter (see above), then there is no need to repeat it here.
+ * appTags must begin with a #
 **/
-function I18N(lang, file, appTag) {	
+function I18N(lang, data, appTag) {	
 	/** Two-character ISO639 language code of the destination language, 
  * or a custom value for special languages (eg 'lolcat', or 'user-defined') */
 	this.lang = lang;
@@ -80,53 +84,52 @@ function I18N(lang, file, appTag) {
 	
 	this.active(true);
 	
-	if ( ! file) {
-		this.loaded = true;
+	if ( ! data) {
 		return;
 	}
-	
+
 	// Is the file more than one word? Then treat it as the input
-	if ( ! file.match(/^\S+$/)) {
-		this._parseFile(file);
+	if ( ! data.match(/^\S+$/)) {
+		this._parseFile(data);
 	}
 	// Treat file as a url.
 	// Is it an i18njs app-tag? Then load from the portal
-	if (file.charAt(0)==='#') {
-		// Guess the language? This isn't reliable but it's a sensible fallback.
+	if (data.charAt(0)==='#') {
 		if ( ! lang) {
-			var locale = navigator && (navigator.language || navigator.userLanguage);
-			if (locale) this.lang = locale.substring(0,2);
-			else return; // fail			
+			lang = I18N.guessLanguage();
 		}
+		// Guess the language? This isn't reliable but it's a sensible fallback.
+		if ( ! lang) return; // fail		
 		// Portal resource
-		file = 'https://i18n.soda.sh/i18n-trans.csv?tag='+escape(file)+'&lang='+escape(this.lang);
-		this.appTag = file;
+		if ( ! this.appTag) this.appTag = data;
+		data = 'https://i18n.soda.sh/i18n-trans.csv?tag='+escape(data)+'&lang='+escape(this.lang);
 	}
 	try {
 		var req = {
 				async: false,
 				cache: true,
+				context:this,
 				success: function(result) {
 					this._parseFile(result);
-				}.bind(this),
+				},
 				complete: function() {
 					this.loaded = true;
-				}.bind(this)
+				}
 		};
 		// Is it a cross-domain fetch? Probably yes
-		var i = file.indexOf('//');
+		var i = data.indexOf('//');
 		var hostname = window.location? window.location : '';
-		var hn = file.substring(i+2, i+2+hostname.length);
+		var hn = data.substring(i+2, i+2+hostname.length);
 		if (i === -1 || (hostname && hn === hostname)) {
 			// Our server :)
 		} else {
-			// jsonp with caching
+			// jsonp with caching?? TODO Does CORS work to allow cross-domain?? try-catch??
 			req.jsonpCallback='_i18nCallback';
 			req.dataType='jsonp';
 		}
 		// Fetch it
 		this.loaded = false;
-		$.ajax(file, req);
+		$.ajax(data, req);
 		// Wait for it (async=false doesn't work for jsonp). Requires SJTest!
 		if (req.dataType==='jsonp') {
 			if (window.SJTest && SJTest.waitFor) {
@@ -140,7 +143,7 @@ function I18N(lang, file, appTag) {
 }
 
 /**
- * Automatically called when an I18N object is made. 
+ * Automatically called when an I18N object is made (so the most recently made is the active one). 
  * You can also call it explicitly to swap between objects.
  * @param on {?boolean} Set this to be active (or not).
  * @returns true if this is active
@@ -150,12 +153,15 @@ I18N.prototype.active = function(on) {
 	 * {I18N} The most recently made (or activated) I18N object. This will be used as a default by the jQuery plugin.
 	 */
 	if (on) I18N.active = this;
-	else if (this === I18N.active) {
+	else if (on!==undefined && this === I18N.active) {
 		I18N.active = null;
 	}
-	return this === I18N.active; 
+	return this === I18N.active;
 };
 
+/**
+ * Convenient static access to a global I18N
+ */
 I18N.tr = function(original) {
 	if ( ! I18N.active) new I18N();
 	return I18N.active.tr(original);	
@@ -229,7 +235,7 @@ I18N.prototype.tr = function (english) {
 	}
 
 	// Remove {}s and (s)
-	var _english = this.uncanon(key, vars);	
+	var _english = this.uncanon(key, vars);
 	return _english;
 }
 
@@ -289,27 +295,30 @@ I18N.prototype.categorise = function(v) {
  * @param key {string} The internal lookup key, as produced by canon(). Useful if debugging corner cases.
  */
 I18N.prototype.onfail = function(english, lang, key) {
-	console.warn("I18N", "fail ("+lang+"): "+english+"	(internal key: "+key+")");
-	if (this.appTag) {
-		// Send a cross-domain ping
-		$.ajax({
-			url:'https://i18n.soda.sh/lg',
-			dataType: 'jsonp',
-			data: {
-				tag: 	this.appTag,
-				msg:	lang+"\t"+english
-			}
-		});
-		// HACK: local SoDash too
-		if (window.location.host.indexOf('soda.sh') != -1) {
-			$.get('/lg?tag='+this.appTag+'&msg='+escape(lang+"\t"+english));
+	// ignore empty tags (It's easy enough with jQuery to try )
+	try {
+		if ( ! $(english).text()) {
+			return;
 		}
-	}
+	} catch(ohwell) {}
+	console.warn("I18N", "fail ("+lang+"): "+english+"	(internal key: "+key+")");
+	if ( ! this.appTag) return;
+	// canon the whitespace (but not variables, etc)
+	english = english.replace(/\s+/g, ' ');
+	// Send a cross-domain ping
+	$.ajax({
+		url:'https://i18n.soda.sh/lg.json',
+		dataType: 'jsonp',
+		data: {
+			tag: 	this.appTag,
+			msg:	lang+"\t"+english
+		}
+	});			
 };
 
 I18N.NUMBER = /[0-9,]+(\.\d+)?/g;
 /**
- * numbers, emails, html tags
+ * numbers, emails, html tags -- keep them untranslated
  */
 I18N.KEEPME = new RegExp(
 		I18N.NUMBER.source
@@ -320,6 +329,7 @@ I18N.KEEPME = new RegExp(
  * @param varCatcher {array}, which will collect the raw versions of "variables", for uncanon to put back.
  * TODO OR the output from a previous canon(original), used to establish place-marker ordering in canon(translation).
  * @param varOrder {?boolean} If true, varCatcher is interpreted as the output from a previous canon().
+ * @returns The "canonical" form -- with variable markers, standardised whitespace, etc. 
  */
 I18N.prototype.canon = function (english, varCatcher, varOrder) {
 	if ( ! english) return english;
@@ -338,6 +348,9 @@ I18N.prototype.canon = function (english, varCatcher, varOrder) {
 		}
 		return I18N._MARKERCHAR+vi;
 	});
+	// standardise whitespace as " "
+	// TODO trim -- but we should preserve leading/trailing whitespace to avoid wordsbeingstucktogether.
+	_canon = _canon.replace(/\s+/g, ' ');
 	return _canon;
 };
 
@@ -413,6 +426,20 @@ I18N.prototype._uncanon2_pluralise = function(text, vars) {
 		text = text.replace(/(\w)\(\w{1,3}\)/g, '$1');
 	}
 	return text;
+};
+
+/**
+ * Try to guess the user's language from the browser.
+ * @returns language code (which could be incorrect), or null
+ */
+I18N.getBrowserLanguage = function() {
+	var locale = navigator && (navigator.language || navigator.userLanguage);
+	if (locale) {
+		// chop down "en-GB" to just "en"
+		var lang = locale.substring(0,2);
+		return lang; 
+	}
+	return null;
 };
 
 /* jQuery plugin
