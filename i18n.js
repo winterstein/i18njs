@@ -133,7 +133,7 @@ function I18N(lang, data, appTag) {
 		// Wait for it (async=false doesn't work for jsonp). Requires SJTest!
 		if (req.dataType==='jsonp') {
 			if (window.SJTest && SJTest.waitFor) {
-				SJTest.waitFor(function(){ return this.loaded; });
+				SJTest.waitFor(function(){ return this.loaded; }, null, 10000);
 			} else console.log('I18N', 'Using asynchronous loading: The race is on (this is bad, and may produce unpredictable results). Please add SJTest.js for safer loading.');
 		}
 	} catch(err) {
