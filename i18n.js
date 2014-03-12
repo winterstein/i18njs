@@ -84,6 +84,7 @@ function I18N(lang, data, appTag) {
 	
 	this.active(true);
 	
+	// Load data?
 	if ( ! data) {
 		return;
 	}
@@ -95,13 +96,16 @@ function I18N(lang, data, appTag) {
 	// Treat file as a url.
 	// Is it an i18njs app-tag? Then load from the portal
 	if (data.charAt(0)==='#') {
-		// Guess the language? This isn't reliable but it's a sensible fallback.
-		if ( ! lang) {
-			lang = I18N.getBrowserLanguage();
-		}
-		if ( ! lang) return; // fail		
 		// Portal resource
 		if ( ! this.appTag) this.appTag = data;
+		// Guess the language? This isn't reliable but it's a sensible fallback.
+		if ( ! this.lang) {
+			var _lang = I18N.getBrowserLanguage();
+			// But don't guess English, as that's probably the original
+			if (_lang!=='en') this.lang = _lang;
+			// Don't load null
+			if ( ! this.lang) return;
+		}			
 		data = 'https://i18n.soda.sh/i18n-trans.csv?tag='+escape(data)+'&lang='+escape(this.lang);
 	}
 	try {
