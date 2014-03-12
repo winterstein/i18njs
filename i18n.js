@@ -55,6 +55,7 @@ function I18N(lang, data, appTag) {
 	 */
 	this.appTag = appTag? appTag : false;
 	
+	FOO 
 	/**
 	 * Format dates. By default uses Date.toLocaleString(), which uses the browser's locale setting.
 	 * Users can replace this with their own function -- or with false to switch off.
