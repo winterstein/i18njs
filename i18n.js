@@ -47,7 +47,7 @@
 **/
 function I18N(lang, data, appTag) {	
 	/** Two-character ISO639 language code of the destination language, 
-	 * or a custom value for special languages (eg 'lolcat', or 'user-defined') */
+ * or a custom value for special languages (eg 'lolcat', or 'user-defined') */
 	this.lang = lang;
 	/**
 	 * {string} Used for reporting untranslatable items.
@@ -107,30 +107,35 @@ function I18N(lang, data, appTag) {
 	try {
 		var req = {
 				async: false,
-				cache: true
+				cache: true,
+				context:this,
+				success: function(result) {
+					this._parseFile(result);
+				},
+				complete: function() {
+					this.loaded = true;
+				}
 		};
 		// Is it a cross-domain fetch? Probably yes
 		var i = data.indexOf('//');
 		var hostname = window.location? window.location : '';
 		var hn = data.substring(i+2, i+2+hostname.length);
-		if (true || i === -1 || (hostname && hn === hostname)) {
+		if (i === -1 || (hostname && hn === hostname)) {
 			// Our server :)
 		} else {
 			// jsonp with caching?? TODO Does CORS work to allow cross-domain?? try-catch??
 			req.jsonpCallback='_i18nCallback';
 			req.dataType='jsonp';
-			console.log('I18N', 'Using asynchronous loading: The race is on (this is bad, and may produce unpredictable results).');
 		}
 		// Fetch it
 		this.loaded = false;
-		$.ajax(data, req).done(function(result) {
-			console.log("I18N", "done", this);
-			this._parseFile(result);					
-		}.bind(this)).always(function() {
-			console.log("I18N", "always", this);
-			this.loaded = true;
-		});
-		
+		$.ajax(data, req);
+		// Wait for it (async=false doesn't work for jsonp). Requires SJTest!
+		if (req.dataType==='jsonp') {
+			if (window.SJTest && SJTest.waitFor) {
+				SJTest.waitFor(function(){ return this.loaded; }, null, 10000);
+			} else console.log('I18N', 'Using asynchronous loading: The race is on (this is bad, and may produce unpredictable results). Please add SJTest.js for safer loading.');
+		}
 	} catch(err) {
 		/* Swallow file-load errors! That way you still get an I18N object */
 		console.error(err);
