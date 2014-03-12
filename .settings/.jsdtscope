@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry excluding="out/scripts/|web/code/|web/|out/scripts/prettify/" kind="src" path=""/>
+	<classpathentry excluding="prettify/" kind="src" path="out/scripts"/>
+	<classpathentry kind="src" path="out/scripts/prettify"/>
+	<classpathentry excluding="code/" kind="src" path="web"/>
+	<classpathentry kind="src" path="web/code"/>
+	<classpathentry kind="con" path="org.eclipse.wst.jsdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="/creole/web/static/code/jquery"/>
+	<classpathentry kind="output" path=""/>
+</classpath>
