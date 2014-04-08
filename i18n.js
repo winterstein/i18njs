@@ -92,6 +92,7 @@ function I18N(lang, data, appTag) {
 	// Is the file more than one word? Then treat it as the input
 	if ( ! data.match(/^\S+$/)) {
 		this._parseFile(data);
+		return;
 	}
 	// Treat file as a url.
 	// Is it an i18njs app-tag? Then load from the portal
@@ -109,31 +110,7 @@ function I18N(lang, data, appTag) {
 		data = 'https://i18n.soda.sh/i18n-trans.csv?tag='+escape(data)+'&lang='+escape(this.lang);
 	}
 	try {
-		var req = {
-				async: false,
-				cache: true
-		};
-		// Is it a cross-domain fetch? Probably yes
-		var i = data.indexOf('//');
-		var hostname = window.location? window.location : '';
-		var hn = data.substring(i+2, i+2+hostname.length);
-		if (true || i === -1 || (hostname && hn === hostname)) {
-			// Our server :)
-		} else {
-			// jsonp with caching?? TODO Does CORS work to allow cross-domain?? try-catch??
-			req.jsonpCallback='_i18nCallback';
-			req.dataType='jsonp';
-			console.log('I18N', 'Using asynchronous loading: The race is on (this is bad, and may produce unpredictable results). Please add SJTest.js for safer loading.');
-		}
-		// Fetch it
-		this.loaded = false;
-		$.ajax(data, req)
-			.done(function(result) {
-				this._parseFile(result);
-			}.bind(this))
-			.always(function() {
-				this.loaded = true;
-			}.bind(this));		
+		this._loadFile(data);
 	} catch(err) {
 		/* Swallow file-load errors! That way you still get an I18N object */
 		console.error(err);
@@ -209,6 +186,39 @@ I18N.prototype._parseFile = function (file) {
 		  // bits[2], if present, is just a comment
 	  }
 	  console.log("I18N", "loaded", this);
+};
+
+/**
+ * Do a synchronous load of a csv file
+ * @param data {string} The url
+ */
+I18N.prototype._loadFile = function(data) {
+	this.file = data;
+	var req = {
+			async: false,
+			cache: true
+	};
+	// Is it a cross-domain fetch? Probably yes
+	var i = data.indexOf('//');
+	var hostname = window.location? window.location : '';
+	var hn = data.substring(i+2, i+2+hostname.length);
+	if (true || i === -1 || (hostname && hn === hostname)) {
+		// Our server :)
+	} else {
+		// jsonp with caching?? TODO Does CORS work to allow cross-domain?? try-catch??
+		req.jsonpCallback='_i18nCallback';
+		req.dataType='jsonp';
+		console.log('I18N', 'Using asynchronous loading: The race is on (this is bad, and may produce unpredictable results). Please add SJTest.js for safer loading.');
+	}
+	// Fetch it
+	this.loaded = false;
+	$.ajax(data, req)
+		.done(function(result) {
+			this._parseFile(result);
+		}.bind(this))
+		.always(function() {
+			this.loaded = true;
+		}.bind(this));		
 };
 
 /**
