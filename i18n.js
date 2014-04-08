@@ -2,7 +2,7 @@
  * i18n.js	A simple flexible Javascript internationalisation system
  * 
  * Author: Daniel Winterstein   
- * Version: 0.2.1   
+ * Version: 0.2.2   
  * Copyright: Winterwell http://winterwell.com   
  * Requires: jQuery, and SJTest (optional but recommended) for synchronous ajax loading.   
  * License: MIT (a commercially friendly open source license)
@@ -130,9 +130,10 @@ function I18N(lang, data, appTag) {
 		$.ajax(data, req)
 			.done(function(result) {
 				this._parseFile(result);
-			}).always(function() {
+			}.bind(this))
+			.always(function() {
 				this.loaded = true;
-			});		
+			}.bind(this));		
 	} catch(err) {
 		/* Swallow file-load errors! That way you still get an I18N object */
 		console.error(err);

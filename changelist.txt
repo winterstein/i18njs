@@ -1,0 +1,6 @@
+
+# i18n.js Changelist
+
+## Version 0.2.2
+
+ - First version to be used for client-specific translations in SoDash. 
