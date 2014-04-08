@@ -1,10 +1,6 @@
 echo "This script assumes you have a winterwell setup!"
 # Useful script for updating the files from their Winterwell dev-versions
 
-#echo ...Copy in from creole
-#cp ~/winterwell/code/creole/web/static/code/i18n/i18n.js .
-#cp ~/winterwell/code/creole/web/static/code/i18n/i18nTest.html .
-
 echo ...JSDoc
 rm -rf out
 jsdoc i18n.js
@@ -13,8 +9,8 @@ yuicompressor -o i18n.min.js i18n.js
 cp i18n.min.js ~/winterwell/code/creole/web/static/code/i18n/i18n.min.js
 
 echo ...Copy to creole
-cp i18n.js ~/winterwell/code/creole/web/static/code/i18n/
-cp i18n.min.js ~/winterwell/code/creole/web/static/code/i18n/
+cp i18n.js ~/winterwell/sodash/web/static/code/i18n/
+cp i18n.min.js ~/winterwell/sodash/web/static/code/i18n/
 
 echo ...Copy in+out from www
 rm -rf ~/winterwell/www/software/i18njs/out
