@@ -13,6 +13,7 @@ cp i18n.min.js ~/winterwell/sodash/web/static/code/i18n/
 
 echo ...Copy in+out from www
 rm -rf ~/winterwell/www/software/i18njs/out
+mkdir ~/winterwell/www/software/i18njs/out
 cp -R out ~/winterwell/www/software/i18njs/out
 
 cp i18n.min.js ~/winterwell/www/software/i18njs/i18n.min.js
