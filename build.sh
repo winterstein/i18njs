@@ -6,7 +6,7 @@ echo "This script assumes you have a winterwell setup!"
 
 echo ...JSDoc
 rm -rf out
-jsdoc -d=out i18n.js
+jsdoc i18n.js
 echo ...compress
 yuicompressor -o i18n.min.js i18n.js
 
