@@ -2,7 +2,7 @@
  * i18n.js	A simple flexible Javascript internationalisation system
  * 
  * Author: Daniel Winterstein   
- * Version: 0.2.2   
+ * Version: 0.2.3   
  * Copyright: Winterwell http://winterwell.com   
  * Requires: jQuery, and SJTest (optional but recommended) for synchronous ajax loading.   
  * License: MIT (a commercially friendly open source license)
@@ -49,6 +49,7 @@
  * Defaults to using i18n.soda.sh if absent.
 **/
 function I18N(lang, data, appTag, local) {	
+	this.version = "0.2.3";
 	/** Two-character ISO639 language code of the destination language, 
  * or a custom value for special languages (eg 'lolcat', or 'user-defined') */
 	this.lang = lang;
