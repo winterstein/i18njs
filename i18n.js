@@ -44,8 +44,11 @@
  * @param appTag {?string} Tag to report translation misses to the i18njs portal (if you have an account).
  * If an appTag is provided for the data parameter (see above), then there is no need to repeat it here.
  * appTags must begin with a #
+ * 
+ * @param local {boolean} Use the local server for this I18N rather than i18n.soda.sh.
+ * Defaults to using i18n.soda.sh if absent.
 **/
-function I18N(lang, data, appTag) {	
+function I18N(lang, data, appTag, local) {	
 	/** Two-character ISO639 language code of the destination language, 
  * or a custom value for special languages (eg 'lolcat', or 'user-defined') */
 	this.lang = lang;
@@ -54,6 +57,8 @@ function I18N(lang, data, appTag) {
 	 * @see I18N.onfail()
 	 */
 	this.appTag = appTag? appTag : false;
+	
+	this.urlPrefix = local ? 'https://i18n.soda.sh' : '';
 	
 	/**
 	 * Format dates. By default uses Date.toLocaleString(), which uses the browser's locale setting.
@@ -107,7 +112,7 @@ function I18N(lang, data, appTag) {
 			// Don't load null
 			if ( ! this.lang) return;
 		}			
-		data = 'https://i18n.soda.sh/i18n-trans.csv?tag='+escape(data)+'&lang='+escape(this.lang);
+		data = this.urlPrefix+'/i18n-trans.csv?tag='+escape(data)+'&lang='+escape(this.lang);
 	}
 	try {
 		this._loadFile(data);
@@ -315,7 +320,7 @@ I18N.prototype.onfail = function(english, lang, key) {
 	english = english.replace(/\s+/g, ' ');
 	// Send a cross-domain ping
 	$.ajax({
-		url:'https://i18n.soda.sh/lg.json',
+		url: this.urlPrefix + '/lg.json',
 		dataType: 'jsonp',
 		data: {
 			tag: 	this.appTag,
@@ -448,6 +453,17 @@ I18N.getBrowserLanguage = function() {
 		return lang; 
 	}
 	return null;
+};
+
+/**
+ * Find out if there's a translation available for this string
+ * @param english
+ */
+I18N.prototype.canTranslate = function(english) {
+	var vars = [],
+	key = this.canon(english, vars);
+	if(this.en2lang[key]) return true;
+	return false;
 };
 
 /* jQuery plugin

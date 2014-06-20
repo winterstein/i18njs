@@ -8,7 +8,7 @@ echo ...compress
 yuicompressor -o i18n.min.js i18n.js
 
 echo ...Copy to creole
-cp i18n.js ~/winterwell/sodash/web/static/code/i18n/
+#cp i18n.js ~/winterwell/sodash/web/static/code/i18n/
 cp i18n.min.js ~/winterwell/sodash/web/static/code/i18n/
 
 echo ...Copy in+out from www
