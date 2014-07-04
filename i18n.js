@@ -59,7 +59,7 @@ function I18N(lang, data, appTag, local) {
 	 */
 	this.appTag = appTag? appTag : false;
 	
-	this.urlPrefix = local ? 'https://i18n.soda.sh' : '';
+	this.urlPrefix = local ? '' : 'https://i18n.soda.sh';
 	
 	/**
 	 * Format dates. By default uses Date.toLocaleString(), which uses the browser's locale setting.
