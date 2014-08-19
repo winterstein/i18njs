@@ -311,7 +311,7 @@ I18N.prototype.categorise = function(v) {
 I18N.prototype.onfail = function(english, lang, key) {
 	// ignore empty tags (It's easy enough with jQuery to try )
 	try {
-		if ( ! $(english).text()) {
+		if ( $(english).length > 0 && ! $(english).text()) {
 			return;
 		}
 	} catch(ohwell) {}
