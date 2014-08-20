@@ -319,9 +319,9 @@ I18N.prototype.onfail = function(english, lang, key) {
 	} catch(ohwell) {}
 
 	// Only log a fail once!
-	if(this.fails[canon(english)]) return;
+	if(this.fails[this.canon(english)]) return;
 	// Mark it as logged.
-	this.fails[canon(english)] = true;
+	this.fails[this.canon(english)] = true;
 
 	console.warn("I18N", "fail ("+lang+"): "+english+"	(internal key: "+key+")");
 	if ( ! this.appTag) return;
