@@ -60,6 +60,8 @@ function I18N(lang, data, appTag, local) {
 	this.appTag = appTag? appTag : false;
 	
 	this.urlPrefix = local ? '' : 'https://i18n.soda.sh';
+
+	this.fails = {};
 	
 	/**
 	 * Format dates. By default uses Date.toLocaleString(), which uses the browser's locale setting.
@@ -315,6 +317,11 @@ I18N.prototype.onfail = function(english, lang, key) {
 			return;
 		}
 	} catch(ohwell) {}
+
+	// Only log a fail once!
+	if(fails[canon(english)]) return;
+	fails[canon(english)] = true;
+
 	console.warn("I18N", "fail ("+lang+"): "+english+"	(internal key: "+key+")");
 	if ( ! this.appTag) return;
 	// canon the whitespace (but not variables, etc)
