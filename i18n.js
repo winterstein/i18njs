@@ -61,6 +61,10 @@ function I18N(lang, data, appTag, local) {
 	
 	this.urlPrefix = local ? '' : 'https://i18n.soda.sh';
 
+	/**
+	 * Record failed translations, so we only report them once.
+	 * {string: boolean} but set to {string} "!" if it gets too big.
+	 */
 	this.fails = {};
 	
 	/**
@@ -84,7 +88,7 @@ function I18N(lang, data, appTag, local) {
 	};
 	
 	/**
-	 * {boolean} Is it safe to use this?
+	 * {boolean} Is it safe to use this I18N object?
 	 */
 	this.loaded = true; // may be reset to false by ajax call below
 	
@@ -306,23 +310,36 @@ I18N.prototype.categorise = function(v) {
 /**
  * Called when we can't translate a phrase.
  * The default version is for a SoDash backend -- replace it with your own logging call!
+ * Note: This will skip too-long texts (max:1000 characters), and it stops logging after 1000 fails. 
  * @param english {string} The original text.
  * @param lang {string} The language we're translating to.
  * @param key {string} The internal lookup key, as produced by canon(). Useful if debugging corner cases.
  */
 I18N.prototype.onfail = function(english, lang, key) {
-	// ignore empty tags (It's easy enough with jQuery to try )
+	if (this.fails === "!") return;
+	// ignore empty tags
 	try {
-		if ( $(english).length > 0 && ! $(english).text()) {
+		var $en = $(english);
+		if ($en.length > 0 && ! $en.text()) {
 			return;
 		}
 	} catch(ohwell) {}
-
+	// Don't log giant blocks of text. Test on key, to be lenient towards tags (which can get bloated).
+	if (key.length > 1000) return;
 	// Only log a fail once!
-	if(this.fails[this.canon(english)]) return;
+	if(this.fails[key]) return;
+	// Too many fails for one page to log?
+	var size = 0;
+	for(f in this.fails) size++; // NB: this will count a few bits of prototype gumpf, but it doesn't matter.
+	if (size > 1000) {
+		console.warn("I18N", "Switching off fail logging ("+lang+")");
+		this.fails = "!";
+		return;
+	}
+	// NB: Memory paranoia: cap the size of fails -- Not needed --we stopped logging long ago. if (size>10000) this.fails = {};
 	// Mark it as logged.
-	this.fails[this.canon(english)] = true;
-
+	this.fails[key] = true;
+	
 	console.warn("I18N", "fail ("+lang+"): "+english+"	(internal key: "+key+")");
 	if ( ! this.appTag) return;
 	// canon the whitespace (but not variables, etc)
