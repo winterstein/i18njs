@@ -319,7 +319,7 @@ I18N.prototype.onfail = function(english, lang, key) {
 	if (this.fails === "!") return;
 	// ignore empty tags
 	try {
-		var $en = $(english);
+		var $en = $.parseHTML(english);
 		if ($en.length > 0 && ! $en.text()) {
 			return;
 		}
