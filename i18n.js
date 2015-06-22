@@ -49,7 +49,8 @@
  * Defaults to using i18n.soda.sh if absent.
 **/
 function I18N(lang, data, appTag, local) {	
-	this.version = "0.2.3";
+	this.verbose = false;
+	this.version = "0.2.4";
 	/** Two-character ISO639 language code of the destination language, 
  * or a custom value for special languages (eg 'lolcat', or 'user-defined') */
 	this.lang = lang;
@@ -340,7 +341,7 @@ I18N.prototype.onfail = function(english, lang, key) {
 	// Mark it as logged.
 	this.fails[key] = true;
 	
-	console.warn("I18N", "fail ("+lang+"): "+english+"	(internal key: "+key+")");
+	if (this.verbose) console.warn("I18N", "fail ("+lang+"): "+english+"	(internal key: "+key+")");
 	if ( ! this.appTag) return;
 	// canon the whitespace (but not variables, etc)
 	english = english.replace(/\s+/g, ' ');
