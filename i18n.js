@@ -6,27 +6,6 @@
  * Copyright: Winterwell http://winterwell.com   
  * Requires: jQuery, and SJTest (optional but recommended) for synchronous ajax loading.   
  * License: MIT (a commercially friendly open source license)
- * 
- * 
- * https://en.wikipedia.org/wiki/Inflection:
- * In grammar, inflection or inflexion is the modification of a word to express different grammatical categories such as 
- * tense, mood, voice, aspect, person, number, gender and case.
- * 
- * It's interesting how limited the enterprise level complex systems are. 
- * E.g. No support for gender? It suggests that the language used in software 
- * is limited enough for "You have 5 message(s)" & similar to be the _only_
- * common complex case.
- * 
- * This may be the best that a lookup based system can do. Possibly the best 
- * that any system can do without requiring serious computer power.
- * 
- * Simple but limited: Roll-your-own string mangling.
- * 
- * Complex & limited:
- * http://doc.qt.digia.com/qq/qq19-plurals.html
- * or
- * https://www.gnu.org/software/gettext/manual/html_node/Translating-plural-forms.html 
- * 
  */
 
 /**
@@ -212,17 +191,17 @@ I18N.prototype._loadFile = function(data) {
 			cache: true
 	};
 	// Is it a cross-domain fetch? Probably yes
-	var i = data.indexOf('//');
-	var hostname = window.location? window.location : '';
-	var hn = data.substring(i+2, i+2+hostname.length);
-	if (true || i === -1 || (hostname && hn === hostname)) {
-		// Our server :)
-	} else {
-		// jsonp with caching?? TODO Does CORS work to allow cross-domain?? try-catch??
-		req.jsonpCallback='_i18nCallback';
-		req.dataType='jsonp';
-		console.log('I18N', 'Using asynchronous loading: The race is on (this is bad, and may produce unpredictable results). Please add SJTest.js for safer loading.');
-	}
+	// var i = data.indexOf('//');
+	// var hostname = window.location? window.location : '';
+	// var hn = data.substring(i+2, i+2+hostname.length);
+	// if (true || i === -1 || (hostname && hn === hostname)) {
+	// 	// Our server :)
+	// } else {
+	// 	// jsonp with caching?? TODO Does CORS work to allow cross-domain?? try-catch??
+	// 	req.jsonpCallback='_i18nCallback';
+	// 	req.dataType='jsonp';
+	// 	console.log('I18N', 'Using asynchronous loading: The race is on (this is bad, and may produce unpredictable results). Please add SJTest.js for safer loading.');
+	// }
 	// Fetch it
 	this.loaded = false;
 	$.ajax(data, req)
@@ -311,7 +290,7 @@ I18N.prototype.categorise = function(v) {
 /**
  * Called when we can't translate a phrase.
  * The default version is for a SoDash backend -- replace it with your own logging call!
- * Note: This will skip too-long texts (max:1000 characters), and it stops logging after 1000 fails. 
+ * Note: This will skip repeats, too-long texts (max:1000 characters), and it stops logging after 1000 fails. 
  * @param english {string} The original text.
  * @param lang {string} The language we're translating to.
  * @param key {string} The internal lookup key, as produced by canon(). Useful if debugging corner cases.
@@ -493,16 +472,22 @@ I18N.prototype.canTranslate = function(english) {
 	return false;
 };
 
+// CommonJS module exports
+if (typeof exports != 'undefined') {
+	exports.I18N = I18N;
+}
+
 /* jQuery plugin
  * Define $().tr(), which applies translation from the most recent I18N object */
-(function ( $ ) {
+(function (jQuery) {
+	if ( ! jQuery) return;
 	/** 
 	 * Translate the element(s).
 	 * @param i18n {?I18N} If unset, use the latest made/active one, or make a new one. */
-	$.fn.tr = function(i18n) {
+	jQuery.fn.tr = function(i18n) {
 		if ( ! i18n) i18n = I18N.active || new I18N();
 	    return this.each(function() {
-	    	var $el = $(this);
+	    	var $el = jQuery(this);
 	    	// Store the raw version (in case we switch languages later)
 	    	var raw = $el.data('i18n-raw');
 	    	if ( ! raw) {
@@ -513,4 +498,4 @@ I18N.prototype.canTranslate = function(english) {
 	    	$el.html(trans);
 	    });
 	};
-}(jQuery));
+}(jQuery || $));
