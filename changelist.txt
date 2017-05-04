@@ -1,6 +1,11 @@
 
 # i18n.js Changelist
 
-## Version 0.2.2
+### Version 1.1.0
+
+ - Moved to NPM
+ - Supports inline definition of complex plurals, e.g. "1 box (plural: boxes)"
+
+### Version 0.2.2
 
  - First version to be used for client-specific translations in SoDash. 

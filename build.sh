@@ -6,24 +6,24 @@ echo "This script assumes you have a winterwell setup!"
 
 echo ...JSDoc
 rm -rf out
-jsdoc i18n.js
+jsdoc src/i18n.js
+
 echo ...compress
-yuicompressor -o i18n.min.js i18n.js
+yuicompressor -o i18n.min.js bin/i18n.js
 
 echo ...Copy to creole
 #cp i18n.js ~/winterwell/sodash/web/static/code/i18n/
 cp i18n.min.js ~/winterwell/sodash/web/static/code/i18n/
 
-echo ...Copy in+out from www
-rm -rf ~/winterwell/www/software/i18njs/out
-cp -R out ~/winterwell/www/software/i18njs/out
+#echo ...Copy in+out from www
+#rm -rf ~/winterwell/www/software/i18njs/out
+#cp -R out ~/winterwell/www/software/i18njs/out
 
 cp i18n.min.js ~/winterwell/www/software/i18njs/i18n.min.js
-cp i18n.js ~/winterwell/www/software/i18njs/i18n.js
-cp ~/winterwell/www/software/i18njs/HelloWorld.html .
+cp bin/i18n.js ~/winterwell/www/software/i18njs/i18n.js
+cp test/HelloWorld.html ~/winterwell/www/software/i18njs/HelloWorld.html
 
 echo ...git here
 git commit -a -m "build"
 
 echo "Done :)"
-

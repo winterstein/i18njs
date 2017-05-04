@@ -2,7 +2,6 @@
  * i18n.js	A simple flexible Javascript internationalisation system
  * 
  * Author: Daniel Winterstein   
- * Version: 0.2.3   
  * Copyright: Winterwell http://winterwell.com   
  * Requires: jQuery, and SJTest (optional but recommended) for synchronous ajax loading.   
  * License: MIT (a commercially friendly open source license)
@@ -423,7 +422,7 @@ I18N.prototype._uncanon2_convert = function(v) {
 /**
  * Convert (s) endings into s or ""
  * @param text {string} e.g. "$0 monkey(s)"
- * @param vars Placeholder values, e.g. [2]
+ * @param vars Placeholder values, e.g. [2] The first numerical var determines whether to pluralise or not
  * @returns {string} e.g. "2 monkeys" 
  * @private
  */
@@ -438,11 +437,23 @@ I18N.prototype._uncanon2_pluralise = function(text, vars) {
 			break;
 		}
 	}
+	// Plural forms: 
+	// Normal: +s, +es (eg potatoes, boxes), y->ies (eg parties), +en (e.g. oxen)
+	// See http://www.englisch-hilfen.de/en/grammar/plural.htm, or https://en.wikipedia.org/wiki/English_plurals for the full horror.
+	// We also cover some French, German (+e, +n) and Spanish.
+	// regex matches letter(es)	
 	if (isPlural===true) {
-		// Get the correction from the translation ??should we use a more defensive regex??
-		text = text.replace(/(\w)\((\w{1,3})\)/g, '$1$2');
+		// Get the correction from the translation
+		text = text.replace(/(\w)\((s|es|en|e|n)\)/g, '$1$2');
+		// Inline complex form: e.g. "child (plural: children)" or "children (sing: child)"
+		// NB: The OED has pl, sing as abbreviations, c.f. http://public.oed.com/how-to-use-the-oed/abbreviations/
+		text = text.replace(/(\w+)\s*\((plural|pl): ?(\w+)\)/g, '$3');
+		text = text.replace(/(\w+)\s*\((singular|sing): ?(\w+)\)/g, '$1');
 	} else if (isPlural===false) {
-		text = text.replace(/(\w)\(\w{1,3}\)/g, '$1');
+		text = text.replace(/(\w)\((s|es|en|e|n)\)/g, '$1');
+		// Inline complex form
+		text = text.replace(/(\w+)\s*\((plural|pl): ?(\w+)\)/g, '$1');
+		text = text.replace(/(\w+)\s*\((singular|sing): ?(\w+)\)/g, '$3');		
 	}
 	return text;
 };

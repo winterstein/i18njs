@@ -43,6 +43,53 @@ SJTest.run(
 			assertMatch(french1, "Vous avez 1 message");
 				
 		},
+
+		plurals_without_trans: function() {
+			var i18n = new I18N("en");
+			var trans5 = i18n.tr("You got 5 message(s)");
+			assertMatch(trans5, "You got 5 messages");
+			
+			var trans1 = i18n.tr("You got 1 message(s)");
+			assertMatch(trans1, "You got 1 message");				
+		},
+
+		plurals_complex_via_add: function() {			
+			var i18n = new I18N("en");
+			// general case
+			i18n.add("5 children", "5 children");
+			// singular, which is more specific
+			i18n.add("1 children", "1 child");
+
+			var trans5 = i18n.tr("5 children");
+			var trans1 = i18n.tr("1 children");
+			assertMatch(trans5, "5 children");
+			assertMatch(trans1, "1 child");				
+		},
+
+		plurals_complex_via_inline: function() {			
+			var i18n = new I18N("en");
+
+			var trans5 = i18n.tr("5 child (plural: children)");
+			var trans1 = i18n.tr("1 child (plural: children)");
+			assertMatch(trans5, "5 children");
+			assertMatch(trans1, "1 child");				
+
+			var btrans5 = i18n.tr("5 children (singular: child)");
+			var btrans1 = i18n.tr("1 children (singular: child)");
+			assertMatch(btrans5, "5 children");
+			assertMatch(btrans1, "1 child");				
+
+			var ctrans5 = i18n.tr("5 children (sing: child)");
+			var ctrans1 = i18n.tr("1 children (sing: child)");
+			assertMatch(btrans5, "5 children");
+			assertMatch(btrans1, "1 child");		
+
+			// Test that we don't accidentally zap bracketed things
+			var notHere5 = i18n.tr("5 children (but: no)");
+			var notHere1 = i18n.tr("1 children (but: no)");
+			assertMatch(notHere5, "5 children (but: no)");
+			assertMatch(notHere1, "1 children (but: no)");
+		},
 		
 		uncanon_extraNumbers: function() {
 			// The translation has a number, which isn't in the original
