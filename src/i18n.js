@@ -488,7 +488,7 @@ if (typeof exports != 'undefined') {
 	exports.I18N = I18N;
 }
 
-/* jQuery plugin
+/* Optional jQuery plugin
  * Define $().tr(), which applies translation from the most recent I18N object */
 (function (jQuery) {
 	if ( ! jQuery) return;
@@ -509,4 +509,4 @@ if (typeof exports != 'undefined') {
 	    	$el.html(trans);
 	    });
 	};
-}(jQuery || $));
+}(window.jQuery || window.$));

@@ -1,6 +1,6 @@
 {
   "name": "easyi18n",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Easy to use internationalisation (i18n): translate and localise your website or app. Uniquely, this does not require any refactoring of your code to work.",
   "main": "./bin/i18n.js",
   "repository": {

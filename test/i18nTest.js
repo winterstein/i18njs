@@ -66,6 +66,22 @@ SJTest.run(
 			assertMatch(trans1, "1 child");				
 		},
 
+		plurals_complex_via_add_fragment: function() {			
+			// I18N doesn't do fragment replacement -- chop your string up
+			var i18n = new I18N("en");			
+			// general case
+			i18n.add("5 children", "5 children");
+			// singular, which is more specific
+			i18n.add("1 children", "1 child");
+
+			var trans1a = "I have "+i18n.tr("1 children")+i18n.tr(" and a duck.");
+			var trans1 = i18n.tr("I have 1 children and a duck.");
+			var trans2 = i18n.tr("1 have 2 children and a horse.");
+			assertMatch(trans1a, "I have 1 child and a duck.");
+			assertMatch(trans1, "I have 1 child and a duck.");
+			assertMatch(trans2, "I have 2 children and a horse.");
+		},
+
 		plurals_complex_via_inline: function() {			
 			var i18n = new I18N("en");
 
@@ -91,6 +107,24 @@ SJTest.run(
 			assertMatch(notHere1, "1 children (but: no)");
 		},
 		
+		plurals_complex_via_inline_fragment: function() {			
+			var i18n = new I18N("en");
+			var trans1 = i18n.tr("I have 1 children (sing:child)");
+			var trans2 = i18n.tr("I have 2 child (pl:children)");
+			assertMatch(trans1, "I have 1 child");
+			assertMatch(trans2, "I have 2 children");
+		},
+
+		plurals_two_in_one_text: function() {
+			// Fail :( The first plural/singular setting is applied to all
+			var i18n = new I18N("en");
+			let trans1 = i18n.tr("I have 2 dog(s) and 1 cat(s)");
+			assertMatch(trans1, "I have 2 dog and 1 cat");
+
+			let trans3 = i18n.tr("I have 1 dog(s) and 2 cat(s)");
+			assertMatch(trans3, "I have 1 dog and 2 cats");			
+		},
+
 		uncanon_extraNumbers: function() {
 			// The translation has a number, which isn't in the original
 			i18n = new I18N("fr", "test	test1");
