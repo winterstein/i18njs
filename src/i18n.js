@@ -487,6 +487,7 @@ I18N.prototype.canTranslate = function(english) {
 if (typeof exports != 'undefined') {
 	exports.I18N = I18N;
 }
+// ?? export default I18N;
 
 /* Optional jQuery plugin
  * Define $().tr(), which applies translation from the most recent I18N object */
