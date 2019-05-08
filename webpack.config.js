@@ -3,7 +3,7 @@ const path = require('path');
 
 
 const baseConfig = {
-	entry: ['@babel/polyfill', './src/i18n.js'],
+	entry: ['./src/i18n.js'],
 	output: {
 		path: path.resolve(__dirname, './bin'),
 		// filename: is left undefined and filled in by makeConfig
